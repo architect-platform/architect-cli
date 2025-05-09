@@ -1,0 +1,3 @@
+pipeline:
+  name: architect-cli-pipeline
+  type: github/classic-java-17-no-release

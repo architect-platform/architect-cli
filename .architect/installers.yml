@@ -1,0 +1,5 @@
+installers:
+  owner: architectplatform
+  name: architect-cli
+  assetType: jar
+  applicationName: architect
