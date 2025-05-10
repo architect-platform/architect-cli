@@ -1,5 +1,5 @@
 installers:
-  owner: architectplatform
+  owner: architect-platform
   name: architect-cli
   assetType: jar
   applicationName: architect-cli
