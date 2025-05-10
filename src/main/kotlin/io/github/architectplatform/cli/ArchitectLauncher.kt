@@ -14,7 +14,7 @@ import picocli.CommandLine.Parameters
 	mixinStandardHelpOptions = true,
 )
 class ArchitectLauncher(
-	val engineClient: EngineClient
+	val engineCommandClient: EngineCommandClient
 ) : Runnable {
 
 	@Parameters
@@ -27,15 +27,14 @@ class ArchitectLauncher(
 		}
 
 		try {
-			engineClient.health()
+			engineCommandClient.health()
 		} catch (e: Exception) {
 			println("Engine is not running. Please start the engine first.")
 			return
 		}
 
 		println("Running command: ${args.first()} with args: ${args.drop(1)}")
-		val command = ApiCommandRequest(args.first(), args.drop(1).toList())
-		val result = engineClient.executeCommand(command)
+		val result = engineCommandClient.executeCommand(args.first(), args.drop(1).toList())
 		println("Success: ${result.body().success}")
 		println("Output: ${result.body().output}")
 	}
