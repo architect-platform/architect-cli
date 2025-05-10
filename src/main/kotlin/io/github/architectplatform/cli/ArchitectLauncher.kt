@@ -11,30 +11,37 @@ import picocli.CommandLine.Parameters
 @Command(
 	name = "architect",
 	description = ["Architect CLI"],
-	mixinStandardHelpOptions = true,
 )
 class ArchitectLauncher(
 	val engineCommandClient: EngineCommandClient
 ) : Runnable {
 
-	@Parameters
-	var args: Array<String> = emptyArray()
+	@Parameters(
+		description = ["Command to execute"],
+		arity = "0..*",
+		paramLabel = "<command>",
+	)
+	var command: String? = null
+
+	@Parameters(
+		description = ["Arguments for the command"],
+		arity = "0..*",
+		paramLabel = "<args>",
+	)
+	var args: List<String> = emptyList()
 
 	override fun run() {
-		if (args.isEmpty()) {
-			CommandLine.usage(this, System.out)
-			return
-		}
-
-		try {
-			engineCommandClient.health()
-		} catch (e: Exception) {
-			println("Engine is not running. Please start the engine first.")
+		if (command == null) {
+			val commands = engineCommandClient.getAll().body()
+			println("Available commands:")
+			commands.forEach { command ->
+				println(" - $command")
+			}
 			return
 		}
 
 		println("Running command: ${args.first()} with args: ${args.drop(1)}")
-		val result = engineCommandClient.executeCommand(args.first(), args.drop(1).toList())
+		val result = engineCommandClient.executeCommand(command!!, args)
 		println("Success: ${result.body().success}")
 		println("Output: ${result.body().output}")
 	}

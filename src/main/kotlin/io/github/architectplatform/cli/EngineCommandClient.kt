@@ -12,9 +12,6 @@ import io.micronaut.http.client.annotation.Client
 @Client(id = "engine", path = "/api")
 interface EngineCommandClient {
 
-	@Get("/health")
-	fun health(): HttpResponse<String>
-
 	@Get("/commands")
 	fun getAll(): HttpResponse<List<String>>
 
