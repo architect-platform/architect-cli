@@ -1,3 +1,10 @@
 micronaut:
   application:
     name: architect-cli
+
+  http:
+    services:
+      engine:
+        url: http://localhost:9292
+        read-timeout: 5s
+        connect-timeout: 5s

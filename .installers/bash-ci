@@ -9,7 +9,7 @@ set -e
 OWNER="architectplatform"
 NAME="architect-cli"
 ASSET_TYPE="jar"
-APPLICATION_NAME="architect"
+APPLICATION_NAME="architect-cli"
 
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"

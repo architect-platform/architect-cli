@@ -12,9 +12,21 @@ plugins {
 	id("io.micronaut.application") version "4.5.3"
 }
 
-repositories { mavenCentral() }
+repositories {
+	mavenCentral()
+	maven {
+		name = "GitHubPackages"
+		url = uri("https://maven.pkg.github.com/architect-platform/architect-api")
+		credentials {
+			username = System.getenv("GITHUB_USER") ?: project.findProperty("githubUser") as String? ?: "github-actions"
+			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("githubToken") as String?
+		}
+	}
+}
 
 dependencies {
+	implementation("io.github.architectplatform:architect-api:1.2.0")
+
 	kapt("info.picocli:picocli-codegen")
 	kapt("io.micronaut.serde:micronaut-serde-processor")
 	implementation("info.picocli:picocli")
