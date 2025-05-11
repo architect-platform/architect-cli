@@ -1,4 +1,7 @@
 project:
   name: architect-cli
   description: "A command-line architect for your projects."
-
+  plugins:
+    - location: architectplatform/gradle-architected
+    - location: architectplatform/github-architected
+    - location: architectplatform/git-architected

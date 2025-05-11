@@ -8,3 +8,4 @@ micronaut:
         url: http://localhost:9292
         read-timeout: 5s
         connect-timeout: 5s
+        exception-on-error-status: false

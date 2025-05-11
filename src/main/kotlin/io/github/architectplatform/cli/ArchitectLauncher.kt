@@ -1,5 +1,6 @@
 package io.github.architectplatform.cli
 
+import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.ApiRegisterProjectRequest
 import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
@@ -36,12 +37,21 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
     val projectName = projectPath.substringAfterLast("/").substringBeforeLast(".")
     println("Project name: $projectName")
 
-    engineCommandClient.getProject(projectName)
-        ?: engineCommandClient.registerProject(
-            ApiRegisterProjectRequest(
-                name = projectName,
-                path = projectPath,
-            ))
+    try {
+      // Check if the project is registered
+      val project = engineCommandClient.getProject(projectName)
+      if (project == null) {
+        println("Project not found. Registering project: $projectName")
+        val request = ApiRegisterProjectRequest(name = projectName, path = projectPath)
+        engineCommandClient.registerProject(request)
+        println("Project registered successfully.")
+      } else {
+        println("Project already registered: $project")
+      }
+    } catch (e: Exception) {
+      println("Error registering project: ${e.message}")
+      return
+    }
 
     args = args.drop(1) // Drop the first argument which is the command name
 

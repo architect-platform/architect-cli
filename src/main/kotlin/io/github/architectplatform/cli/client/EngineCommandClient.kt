@@ -1,4 +1,4 @@
-package io.github.architectplatform.cli
+package io.github.architectplatform.cli.client
 
 import io.github.architectplatform.cli.dto.ApiCommandDTO
 import io.github.architectplatform.cli.dto.ApiCommandResponse
@@ -11,7 +11,7 @@ import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.client.annotation.Client
 
-@Client(id = "engine", path = "/api/projects")
+@Client("engine", path = "/api/projects")
 interface EngineCommandClient {
 
   @Get fun getAll(): List<ApiProjectDTO>
