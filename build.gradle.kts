@@ -12,6 +12,10 @@ plugins {
 	id("io.micronaut.application") version "4.5.3"
 }
 
+repositories {
+	mavenCentral()
+}
+
 dependencies {
 	kapt("info.picocli:picocli-codegen")
 	kapt("io.micronaut.serde:micronaut-serde-processor")
