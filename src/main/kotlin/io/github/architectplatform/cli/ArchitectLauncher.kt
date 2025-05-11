@@ -1,9 +1,7 @@
 package io.github.architectplatform.cli
 
-import io.github.architectplatform.api.interfaces.ApiCommandRequest
 import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
-import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
