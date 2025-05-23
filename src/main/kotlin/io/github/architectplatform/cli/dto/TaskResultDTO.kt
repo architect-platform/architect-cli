@@ -2,4 +2,8 @@ package io.github.architectplatform.cli.dto
 
 import io.micronaut.serde.annotation.Serdeable
 
-@Serdeable data class ApiCommandResponse(val success: Boolean, val output: String?)
+@Serdeable
+data class TaskResultDTO(
+    val success: Boolean,
+    val message: String?,
+)

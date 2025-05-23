@@ -1,10 +1,9 @@
 package io.github.architectplatform.cli.client
 
-import io.github.architectplatform.cli.dto.ApiCommandDTO
-import io.github.architectplatform.cli.dto.ApiCommandResponse
-import io.github.architectplatform.cli.dto.ApiProjectDTO
-import io.github.architectplatform.cli.dto.ApiRegisterProjectRequest
-import io.github.architectplatform.cli.dto.ContextDTO
+import io.github.architectplatform.cli.dto.ProjectDTO
+import io.github.architectplatform.cli.dto.RegisterProjectRequest
+import io.github.architectplatform.cli.dto.TaskDTO
+import io.github.architectplatform.cli.dto.TaskResultDTO
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
@@ -14,27 +13,21 @@ import io.micronaut.http.client.annotation.Client
 @Client("engine", path = "/api/projects")
 interface EngineCommandClient {
 
-  @Get fun getAll(): List<ApiProjectDTO>
+  @Get fun getAllProjects(): List<ProjectDTO>
 
-  @Get("/{name}") fun getProject(@PathVariable name: String): ApiProjectDTO?
+  @Post fun registerProject(@Body request: RegisterProjectRequest): ProjectDTO
 
-  @Post fun registerProject(@Body request: ApiRegisterProjectRequest): ApiProjectDTO
+  @Get("/{name}") fun getProject(@PathVariable name: String): ProjectDTO?
 
-  @Get("/{projectName}/commands")
-  fun getAllCommands(@PathVariable projectName: String): List<ApiCommandDTO>
+  @Get("/{projectName}/tasks") fun getAllTasks(@PathVariable projectName: String): List<TaskDTO>
 
-  @Get("/{projectName}/commands/{commandName}")
-  fun getCommand(
+  @Get("/{projectName}/tasks/{taskName}")
+  fun getTask(@PathVariable projectName: String, @PathVariable taskName: String): TaskDTO?
+
+  @Post("/{projectName}/tasks/{taskName}")
+  fun executeTask(
       @PathVariable projectName: String,
-      @PathVariable commandName: String
-  ): ApiCommandDTO?
-
-  @Post("/{projectName}/commands/{commandName}")
-  fun executeCommand(
-      @PathVariable projectName: String,
-      @PathVariable commandName: String,
+      @PathVariable taskName: String,
       @Body args: List<String>
-  ): ApiCommandResponse
-
-  @Get("/{projectName}/context") fun getContext(@PathVariable projectName: String): ContextDTO
+  ): TaskResultDTO
 }
