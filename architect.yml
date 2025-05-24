@@ -6,5 +6,5 @@ commits:
   type: conventional
 
 plugins:
-  - file:///Users/alessandromazzoli/Projects/architect-platform/gradle-architected/build/libs/gradle-architected-1.4.0.jar
-  - file:///Users/alessandromazzoli/Projects/architect-platform/github-architected/build/libs/github-architected-1.0.2.jar
+  - https://github.com/architect-platform/gradle-architected/releases/download/v1.6.2/gradle-architected.jar
+  - https://github.com/architect-platform/github-architected/releases/download/v1.2.4/github-architected.jar
