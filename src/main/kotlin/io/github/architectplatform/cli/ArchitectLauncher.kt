@@ -30,6 +30,37 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
 
   override fun run() {
 
+    if (command != null && command == "install") {
+      if (args.size < 2) {
+        println("Usage: architect install <name>")
+        return
+      }
+      val name = args[1]
+      val scriptUrl =
+          "https://raw.githubusercontent.com/architect-platform/$name/main/.installers/bash"
+      val shellCommand = listOf("bash", "-c", "curl -sSL $scriptUrl | bash")
+
+      println("Running install script for '$name'...")
+
+      try {
+        val process =
+            ProcessBuilder(shellCommand)
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .start()
+
+        val exitCode = process.waitFor()
+        if (exitCode == 0) {
+          println("✅ Installation completed successfully.")
+        } else {
+          println("❌ Installation failed with exit code $exitCode.")
+        }
+      } catch (e: Exception) {
+        println("❌ Error during installation: ${e.message}")
+      }
+      return
+    }
+
     // Current working directory
     val projectPath = System.getProperty("user.dir")
     println("Current working directory: $projectPath")
