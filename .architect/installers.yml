@@ -2,4 +2,4 @@ installers:
   owner: architect-platform
   name: architect-cli
   assetType: jar
-  applicationName: architect-cli
+  applicationName: architect
