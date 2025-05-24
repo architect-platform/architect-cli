@@ -52,7 +52,7 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
 
     println("Running command: $command with args: $args")
     val result = engineCommandClient.executeTask(projectName, command!!, args)
-    println("Result: $result")
+    println(result.toString())
   }
 
   companion object {

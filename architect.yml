@@ -3,4 +3,5 @@ project:
   description: "A command-line architect for your projects."
 
 plugins:
-  - file:///Users/alessandromazzoli/Projects/architect-platform/gradle-architected/build/libs/gradle-architected-1.0.1.jar
+  - file:///Users/alessandromazzoli/Projects/architect-platform/gradle-architected/build/libs/gradle-architected-1.3.0.jar
+  - file:///Users/alessandromazzoli/Projects/architect-platform/github-architected/build/libs/github-architected-1.0.1.jar
