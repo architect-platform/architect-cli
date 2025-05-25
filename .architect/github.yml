@@ -6,7 +6,7 @@ github:
   release:
     assets:
       - name: architect-cli.jar
-        path: "build/libs/architect-cli-*-all.jar"
+        path: "cli/build/libs/architect-cli-*-all.jar"
 
   deps:
     type: renovate
