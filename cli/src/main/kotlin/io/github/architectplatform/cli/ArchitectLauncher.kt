@@ -29,6 +29,10 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
   var args: List<String> = emptyList()
 
   override fun run() {
+      if (command != null && command == "engine") {
+          handleEngineCommand()
+          return
+      }
     // Current working directory
     val projectPath = System.getProperty("user.dir")
     println("Current working directory: $projectPath")
@@ -53,6 +57,55 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
     val result = engineCommandClient.executeTask(projectName, command!!, args)
     println(result.toString())
   }
+
+    private fun handleEngineCommand() {
+        val arg = args.getOrNull(1)
+        if (arg == null) {
+            println("No command provided for 'engine'. Available commands: register, list, execute")
+            return
+        }
+
+        when (arg) {
+            "install" -> {
+                println("Installing Architect Engine...")
+                val command = "curl -sSL https://raw.githubusercontent.com/architect-platform/architect-engine/main/.installers/bash | bash"
+                execute(command)
+            }
+            "start" -> {
+                println("Running Architect Engine...")
+                val command = "architect-engine"
+                execute(command, false)
+            }
+            "stop" -> {
+                println("Stopping Architect Engine...")
+                val command = "pkill -f architect-engine"
+                execute(command)
+            }
+            "clean" -> {
+                println("Cleaning Architect Engine...")
+                val command = "rm -rf ~/.architect-engine"
+                execute(command)
+            }
+            else -> {
+                println("Unknown command for 'engine': $arg")
+                println("Available commands: install, start, stop, clean")
+            }
+        }
+    }
+
+    private fun execute(command: String, wait: Boolean = true) {
+        try {
+            val process = Runtime.getRuntime().exec(command)
+            if (wait) {
+                process.waitFor()
+                println("Command: $command executed successfully.")
+            } else {
+                println("Command: $command is running in the background.")
+            }
+        } catch (e: Exception) {
+            println("Failed to execute command: $command - ${e.message}")
+        }
+    }
 
   companion object {
     @JvmStatic
