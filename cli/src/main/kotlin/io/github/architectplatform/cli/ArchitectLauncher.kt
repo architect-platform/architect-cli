@@ -2,9 +2,11 @@ package io.github.architectplatform.cli
 
 import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
-import io.micronaut.configuration.picocli.PicocliRunner
+import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
+import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
+import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
@@ -127,7 +129,11 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
   companion object {
     @JvmStatic
     fun main(args: Array<String>) {
-      PicocliRunner.run(ArchitectLauncher::class.java, *args)
+      val context = ApplicationContext.run()
+      val launcher = context.getBean(ArchitectLauncher::class.java)
+      val exitCode = CommandLine(launcher).execute(*args)
+      context.close()
+      exitProcess(exitCode)
     }
   }
 }
