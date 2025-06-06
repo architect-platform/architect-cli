@@ -9,6 +9,7 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.client.annotation.Client
+import kotlinx.coroutines.flow.Flow
 
 @Client("engine", path = "/api/projects")
 interface EngineCommandClient {
@@ -29,5 +30,5 @@ interface EngineCommandClient {
       @PathVariable projectName: String,
       @PathVariable taskName: String,
       @Body args: List<String>
-  ): TaskResultDTO
+  ): Flow<TaskResultDTO>
 }
