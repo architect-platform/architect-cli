@@ -53,7 +53,7 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       return
     }
 
-    println("🛠️  Executing task: $command")
+    println("🛠️Executing task: $command")
     runBlocking {
       val startTime = System.currentTimeMillis()
       try {
@@ -63,9 +63,9 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
           println("$status ${result.message}")
         }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
-        println("✅  Task '$command' completed in ${"%.1f".format(duration)}s")
+        println("✅  $command completed in ${"%.1f".format(duration)}s")
       } catch (e: Exception) {
-        println("❌  Error during task execution: ${e.message}")
+        println("❌  Error during $command execution: ${e.message}")
       }
     }
   }
