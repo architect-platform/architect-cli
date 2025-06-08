@@ -50,7 +50,8 @@ class ConsoleUI(private val taskName: String) {
   }
 
   fun complete(finalMessage: String) {
-    lastMessage = "✅ $finalMessage"
+    // Two spaces because the icon is broken
+    lastMessage = "✅  $finalMessage"
     redraw()
   }
 
