@@ -4,11 +4,11 @@ import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
+import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import kotlin.system.exitProcess
 
 @Singleton
 @Command(
@@ -59,9 +59,21 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       try {
         val executionId = engineCommandClient.execute(projectName, command!!, args)
         val flow = engineCommandClient.getExecutionFlow(executionId)
-        flow.collect { event -> println("Event: $event") }
+        var failed = false
+        flow.collect { event ->
+          println("Event: $event")
+          if (event["success"] == false) {
+            failed = true
+            println("❌  Task failed: ${event["message"]}")
+          } else if (event["message"] != null) {
+            println("ℹ️  ${event["message"]}")
+          }
+        }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
         println("✅  $command completed in ${"%.1f".format(duration)}s")
+        if (failed) {
+          exitProcess(1)
+        }
       } catch (e: Exception) {
         println("❌  Error during $command execution: ${e.message}")
         exitProcess(1)
