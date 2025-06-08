@@ -4,11 +4,11 @@ import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
-import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
+import kotlin.system.exitProcess
 
 @Singleton
 @Command(
@@ -64,6 +64,7 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
         println("✅  $command completed in ${"%.1f".format(duration)}s")
       } catch (e: Exception) {
         println("❌  Error during $command execution: ${e.message}")
+        exitProcess(1)
       }
     }
   }
