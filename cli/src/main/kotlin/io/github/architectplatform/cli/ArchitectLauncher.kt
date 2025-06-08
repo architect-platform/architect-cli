@@ -1,14 +1,15 @@
 package io.github.architectplatform.cli
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
-import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
+import kotlin.system.exitProcess
 
 @Singleton
 @Command(
@@ -60,8 +61,9 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
         val executionId = engineCommandClient.execute(projectName, command!!, args)
         val flow = engineCommandClient.getExecutionFlow(executionId)
         var failed = false
+        val mapper = jacksonObjectMapper().apply { findAndRegisterModules() }
         flow.collect { event ->
-          println("Event: $event")
+          println("📨 Event:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event))
           if (event["success"] == false) {
             failed = true
             println("❌  Task failed: ${event["message"]}")
