@@ -1,6 +1,5 @@
 package io.github.architectplatform.cli
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
@@ -54,33 +53,20 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       return
     }
 
+    val ui = ConsoleUI(command!!)
+
     println("🛠️Executing task: $command")
     runBlocking {
       val startTime = System.currentTimeMillis()
       try {
         val executionId = engineCommandClient.execute(projectName, command!!, args)
         val flow = engineCommandClient.getExecutionFlow(executionId)
-        var failed = false
-        val mapper = jacksonObjectMapper().apply { findAndRegisterModules() }
-        flow.collect { event ->
-          println("📨 Event:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event))
-          if (event["success"] == false) {
-            failed = true
-            println("❌  Task failed: ${event["message"]}")
-          } else if (event["message"] != null) {
-            println("ℹ️  ${event["message"]}")
-          }
-        }
+        flow.collect { ui.process(it) }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
-        if (failed) {
-          println("❌  $command failed in ${"%.1f".format(duration)}s")
-          exitProcess(1)
-        } else {
-          println("✅  $command completed in ${"%.1f".format(duration)}s")
-          exitProcess(0)
-        }
+        ui.complete("Task completed in ${"%.1f".format(duration)}s")
+        if (ui.hasFailed) exitProcess(1) else exitProcess(0)
       } catch (e: Exception) {
-        println("❌  Error during $command execution: ${e.message}")
+        ui.completeWithError("Task aborted: ${e.message}")
         exitProcess(1)
       }
     }
