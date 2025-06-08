@@ -10,6 +10,7 @@ plugins {
   id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
   id("com.github.johnrengelman.shadow") version "8.1.1"
   id("io.micronaut.application") version "4.5.3"
+  id("io.micronaut.aot") version "4.5.3"
 }
 
 repositories { mavenCentral() }
@@ -36,11 +37,24 @@ dependencies {
 
 application { mainClass = "io.github.architectplatform.cli.ArchitectLauncher" }
 
+graalvmNative.toolchainDetection.set(false)
+
 micronaut {
   testRuntime("junit5")
   processing {
     incremental(true)
     annotations("io.github.architectplatform.cli.*")
+  }
+  aot {
+    // Please review carefully the optimizations enabled below
+    // Check https://micronaut-projects.github.io/micronaut-aot/latest/guide/ for more details
+    optimizeServiceLoading.set(false)
+    convertYamlToJava.set(false)
+    precomputeOperations.set(true)
+    cacheEnvironment.set(true)
+    optimizeClassLoading.set(true)
+    deduceEnvironment.set(true)
+    optimizeNetty.set(true)
   }
 }
 

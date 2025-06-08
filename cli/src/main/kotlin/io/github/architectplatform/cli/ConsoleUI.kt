@@ -90,7 +90,7 @@ class ConsoleUI(private val taskName: String) {
 
     val rows =
         taskEvents.entries.map { (taskId, icons) ->
-          val label = if (taskId == "global") "🌐 Global" else "🔧 $taskId"
+          val label = if (taskId == "global") "⚙️ Execution" else "🔧 $taskId"
           val iconsString = icons.takeLast(EVENTS_COL_WIDTH / 2).joinToString(" ")
           val msg = taskMessages[taskId] ?: ""
           listOf(label, iconsString, msg)
