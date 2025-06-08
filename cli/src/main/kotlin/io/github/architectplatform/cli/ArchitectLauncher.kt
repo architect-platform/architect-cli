@@ -1,14 +1,15 @@
 package io.github.architectplatform.cli
 
+import ConsoleUI
 import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
+import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import kotlin.system.exitProcess
 
 @Singleton
 @Command(
