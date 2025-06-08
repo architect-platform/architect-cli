@@ -33,5 +33,5 @@ interface EngineCommandClient {
   ): ExecutionId
 
   @Get("/executions/{executionId}")
-  fun getExecutionFlow(@PathVariable executionId: ExecutionId): Flow<ExecutionEvent>
+  fun getExecutionFlow(@PathVariable executionId: ExecutionId): Flow<Map<String, Any>>
 }

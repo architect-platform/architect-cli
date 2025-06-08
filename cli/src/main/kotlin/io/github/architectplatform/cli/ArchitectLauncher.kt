@@ -1,7 +1,6 @@
 package io.github.architectplatform.cli
 
 import io.github.architectplatform.cli.client.EngineCommandClient
-import io.github.architectplatform.cli.client.ExecutionCompletedEvent
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
@@ -60,17 +59,7 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       try {
         val executionId = engineCommandClient.execute(projectName, command!!, args)
         val flow = engineCommandClient.getExecutionFlow(executionId)
-        flow.collect { event ->
-          if (event.taskId != null) {
-            val status = if (event.success) "✅ " else "❌ "
-            println("$status ${event.taskId} - ${event.message}")
-          } else if (event is ExecutionCompletedEvent) {
-            println("🔄 ${event.message}")
-            return@collect
-          } else {
-            println("❓ ${event.message}")
-          }
-        }
+        flow.collect { event -> println("Event: $event") }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
         println("✅  $command completed in ${"%.1f".format(duration)}s")
       } catch (e: Exception) {
