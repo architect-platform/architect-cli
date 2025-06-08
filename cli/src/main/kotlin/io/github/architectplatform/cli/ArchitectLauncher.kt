@@ -70,9 +70,12 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
           }
         }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
-        println("✅  $command completed in ${"%.1f".format(duration)}s")
         if (failed) {
+          println("❌  $command failed in ${"%.1f".format(duration)}s")
           exitProcess(1)
+        } else {
+          println("✅  $command completed in ${"%.1f".format(duration)}s")
+          exitProcess(0)
         }
       } catch (e: Exception) {
         println("❌  Error during $command execution: ${e.message}")
