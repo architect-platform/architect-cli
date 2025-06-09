@@ -20,16 +20,16 @@ class ConsoleUI(private val taskName: String) {
   private fun String.visibleLength(): Int = this.replace(ansiRegex, "").length
 
   companion object {
-    private const val TOTAL_WIDTH = 150
-    private const val LEFT_PANEL_WIDTH = 44
+    private const val TOTAL_WIDTH = 120
+    private const val LEFT_PANEL_WIDTH = 35
     private val RIGHT_PANEL_WIDTH = TOTAL_WIDTH - LEFT_PANEL_WIDTH - 3
 
     private const val INFO_COL_COUNT = 4
     private const val INFO_COL_GUTTERS = INFO_COL_COUNT + 1 // 4 columns + 5 separators
     private val INFO_COL_WIDTH = (TOTAL_WIDTH - INFO_COL_GUTTERS) / INFO_COL_COUNT
 
-    private val TASK_COL_WIDTH = 20
-    private val EVENTS_COL_WIDTH = 22
+    private val TASK_COL_WIDTH = 16
+    private val EVENTS_COL_WIDTH = 12
     private val MESSAGE_COL_WIDTH = RIGHT_PANEL_WIDTH - TASK_COL_WIDTH - EVENTS_COL_WIDTH - 6
   }
 
