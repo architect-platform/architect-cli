@@ -20,7 +20,7 @@ class ConsoleUI(private val taskName: String) {
   private fun String.visibleLength(): Int = this.replace(ansiRegex, "").length
 
   companion object {
-    private const val TOTAL_WIDTH = 120
+    private const val TOTAL_WIDTH = 100
     private const val LEFT_PANEL_WIDTH = 35
     private val RIGHT_PANEL_WIDTH = TOTAL_WIDTH - LEFT_PANEL_WIDTH - 3
 
