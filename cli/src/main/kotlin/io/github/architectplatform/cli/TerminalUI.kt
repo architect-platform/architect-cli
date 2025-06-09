@@ -3,23 +3,24 @@ package io.github.architectplatform.cli
 class TerminalUI(private val totalWidth: Int) {
 
   private val lines = mutableListOf<String>()
+  private val ansiRegex = Regex("\u001B\\[[0-9;]*m")
 
   fun clear() {
     lines.clear()
   }
 
-  /**
-   * Draw a horizontal line with given left, middle (optional), right chars and fill character. If
-   * middle is null, the line is a solid line from left to right fill.
-   */
+  fun addLine(text: String) {
+    if (text.isNotEmpty()) {
+      lines.add(text)
+    }
+  }
+
   fun drawLine(left: Char, middle: Char?, right: Char, fill: Char) {
     val line = buildString {
       append(left)
       if (middle == null) {
         append(fill.toString().repeat(totalWidth - 2))
       } else {
-        // Draw fill repeated totalWidth-3 times + middle + then right
-        // Note: usually totalWidth - 3 fill + 1 middle + 1 right + 1 left = totalWidth
         append(fill.toString().repeat(totalWidth - 3))
         append(middle)
       }
@@ -28,30 +29,16 @@ class TerminalUI(private val totalWidth: Int) {
     lines.add(line)
   }
 
-  /** Draw a full line consisting only of the given char. */
   fun drawFullLine(char: Char) {
     lines.add(char.toString().repeat(totalWidth))
   }
 
-  /** Add a line with centered text inside borders. */
   fun addCenteredLine(text: String, leftBorder: Char = '║', rightBorder: Char = '║') {
-    // Center extension inside this function scope
-    fun String.center(width: Int): String {
-      if (this.length >= width) return this
-      val padding = width - this.length
-      val padStart = padding / 2
-      val padEnd = padding - padStart
-      return " ".repeat(padStart) + this + " ".repeat(padEnd)
-    }
-
-    val padded = text.center(totalWidth - 2)
+    val visibleLength = text.visibleLength()
+    val padded = text.center(totalWidth - 2, visibleLength)
     lines.add("$leftBorder$padded$rightBorder")
   }
 
-  /**
-   * Add a line split into two sections with their own widths, separated by middleBorder. Text is
-   * padded or truncated accordingly.
-   */
   fun addSplitLine(
       leftText: String,
       rightText: String,
@@ -61,12 +48,11 @@ class TerminalUI(private val totalWidth: Int) {
       middleBorder: Char = '│',
       rightBorder: Char = '║'
   ) {
-    val leftPadded = truncateOrPad(leftText, leftWidth)
-    val rightPadded = truncateOrPad(rightText, rightWidth)
+    val leftPadded = truncateOrPadAnsiAware(leftText, leftWidth)
+    val rightPadded = truncateOrPadAnsiAware(rightText, rightWidth)
     lines.add("$leftBorder$leftPadded$middleBorder$rightPadded$rightBorder")
   }
 
-  /** Add an empty split line with given section widths. */
   fun addEmptySplitLine(
       leftWidth: Int,
       rightWidth: Int,
@@ -79,26 +65,15 @@ class TerminalUI(private val totalWidth: Int) {
     lines.add("$leftBorder$leftSpace$middleBorder$rightSpace$rightBorder")
   }
 
-  /**
-   * Draw a table with headers and rows inside specified widths. Borders can be customized via
-   * TableBorders.
-   */
   fun drawTable(
       headers: List<String>,
       rows: List<List<String>>,
       colWidths: List<Int>,
       borders: TableBorders = TableBorders()
   ) {
-    // Header top border line
     lines.add(buildTableLine(colWidths, borders.headerTop))
-
-    // Header titles
     lines.add(buildTableRow(headers, colWidths, borders.headerRow))
-
-    // Header bottom border line
     lines.add(buildTableLine(colWidths, borders.headerBottom))
-
-    // Table rows
     rows.forEach { row -> lines.add(buildTableRow(row, colWidths, borders.row)) }
   }
 
@@ -120,26 +95,38 @@ class TerminalUI(private val totalWidth: Int) {
     val sb = StringBuilder()
     sb.append(borderChars.left)
     for ((i, width) in colWidths.withIndex()) {
-      val cellText = truncateOrPad(cells.getOrNull(i) ?: "", width)
+      val cellText = truncateOrPadAnsiAware(cells.getOrNull(i) ?: "", width)
       sb.append(cellText)
       sb.append(if (i == colWidths.lastIndex) borderChars.right else borderChars.middle)
     }
     return sb.toString()
   }
 
-  /** Truncate text if longer than width, appending ellipsis, or pad with spaces if shorter. */
-  private fun truncateOrPad(text: String, width: Int): String {
-    return if (text.length > width) {
-      if (width <= 1) "…" else text.take(width - 1) + "…"
+  private fun truncateOrPadAnsiAware(text: String, width: Int): String {
+    val visible = text.visibleLength()
+    return if (visible > width) {
+      val clean = text.removeAnsi()
+      if (width <= 1) "…" else clean.take(width - 1) + "…"
     } else {
-      text.padEnd(width)
+      val pad = " ".repeat(width - visible)
+      text + pad
     }
   }
 
-  /** Render all accumulated lines as a single string with newlines. */
+  private fun String.removeAnsi(): String = ansiRegex.replace(this, "")
+
+  private fun String.visibleLength(): Int = this.removeAnsi().length
+
+  private fun String.center(width: Int, visibleLen: Int): String {
+    if (visibleLen >= width) return this
+    val padding = width - visibleLen
+    val padStart = padding / 2
+    val padEnd = padding - padStart
+    return " ".repeat(padStart) + this + " ".repeat(padEnd)
+  }
+
   fun render(): String = lines.joinToString("\n")
 
-  /** Configuration for table border characters. */
   data class TableBorders(
       val headerTop: BorderChars = BorderChars('┌', '┬', '┐', '─'),
       val headerRow: BorderChars = BorderChars('│', '│', '│', ' '),

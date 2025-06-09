@@ -5,11 +5,11 @@ import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
-import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
+import kotlin.system.exitProcess
 
 @Singleton
 @Command(
@@ -64,8 +64,13 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
         val flow = engineCommandClient.getExecutionFlow(executionId)
         flow.collect { ui.process(it) }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
-        ui.complete("Task completed in ${"%.1f".format(duration)}s")
-        if (ui.hasFailed) exitProcess(1) else exitProcess(0)
+        if (ui.hasFailed) {
+          ui.completeWithError("Task failed")
+          exitProcess(1)
+        } else {
+          ui.complete("Task completed in ${"%.1f".format(duration)}s")
+          exitProcess(0)
+        }
       } catch (e: Exception) {
         ui.completeWithError("Task aborted: ${e.message}")
         exitProcess(1)
