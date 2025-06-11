@@ -5,11 +5,11 @@ import io.github.architectplatform.cli.client.EngineCommandClient
 import io.github.architectplatform.cli.dto.RegisterProjectRequest
 import io.micronaut.context.ApplicationContext
 import jakarta.inject.Singleton
+import kotlin.system.exitProcess
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import kotlin.system.exitProcess
 
 @Singleton
 @Command(
@@ -31,6 +31,13 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       paramLabel = "<args>",
   )
   var args: List<String> = emptyList()
+
+  @CommandLine.Option(
+      names = ["-p", "--plain"],
+      description = ["Enable plain output (CI Environments)"],
+      defaultValue = "false",
+  )
+  var plain: Boolean = false
 
   override fun run() {
     if (command == "engine") {
@@ -62,17 +69,35 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       try {
         val executionId = engineCommandClient.execute(projectName, command!!, args)
         val flow = engineCommandClient.getExecutionFlow(executionId)
-        flow.collect { ui.process(it) }
+        flow.collect {
+          if (plain) {
+            println(it)
+          } else {
+            ui.process(it)
+          }
+        }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
         if (ui.hasFailed) {
-          ui.completeWithError("Task failed")
+          if (plain) {
+            println("Task failed after ${"%.1f".format(duration)}s")
+          } else {
+            ui.completeWithError("Task failed")
+          }
           exitProcess(1)
         } else {
-          ui.complete("Task completed in ${"%.1f".format(duration)}s")
+          if (plain) {
+            println("Task completed in ${"%.1f".format(duration)}s")
+          } else {
+            ui.complete("Task completed in ${"%.1f".format(duration)}s")
+          }
           exitProcess(0)
         }
       } catch (e: Exception) {
-        ui.completeWithError("Task aborted: ${e.message}")
+        if (plain) {
+          println("Task aborted: ${e.message}")
+        } else {
+          ui.completeWithError("Task aborted: ${e.message}")
+        }
         exitProcess(1)
       }
     }

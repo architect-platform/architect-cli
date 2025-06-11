@@ -1,4 +1,8 @@
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.github.architectplatform.cli.TerminalUI
+import io.github.architectplatform.cli.client.ExecutionId
 
 class ConsoleUI(private val taskName: String) {
 
@@ -20,7 +24,7 @@ class ConsoleUI(private val taskName: String) {
   private fun String.visibleLength(): Int = this.replace(ansiRegex, "").length
 
   companion object {
-    private const val TOTAL_WIDTH = 100
+    private const val TOTAL_WIDTH = 150
     private const val LEFT_PANEL_WIDTH = 35
     private val RIGHT_PANEL_WIDTH = TOTAL_WIDTH - LEFT_PANEL_WIDTH - 3
 
@@ -28,49 +32,68 @@ class ConsoleUI(private val taskName: String) {
     private const val INFO_COL_GUTTERS = INFO_COL_COUNT + 1 // 4 columns + 5 separators
     private val INFO_COL_WIDTH = (TOTAL_WIDTH - INFO_COL_GUTTERS) / INFO_COL_COUNT
 
-    private val TASK_COL_WIDTH = 16
-    private val EVENTS_COL_WIDTH = 12
-    private val MESSAGE_COL_WIDTH = RIGHT_PANEL_WIDTH - TASK_COL_WIDTH - EVENTS_COL_WIDTH - 6
+    private val EVENT_ID_COL_WIDTH = 32
+    private val EVENT_CONTENT_COL_WIDTH = RIGHT_PANEL_WIDTH - EVENT_ID_COL_WIDTH - 6
   }
 
   private val ui = TerminalUI(TOTAL_WIDTH)
 
-  private val taskEvents = linkedMapOf<String, MutableList<String>>()
-  private val taskMessages = linkedMapOf<String, String>()
-  private val seenTasks = mutableSetOf<String>()
+  data class EventLog(val id: ArchitectEventId, val icon: String, val message: String)
+
+  private val eventsLog = mutableListOf<EventLog>()
+  private val failureReasons = mutableListOf<String>()
   private var executionId: String = "N/A"
   private var lastMessage: String? = null
   private var failed = false
-  private val failureReasons = mutableMapOf<String, MutableList<String>>()
 
   val hasFailed: Boolean
     get() = failed
 
-  fun process(event: Map<String, Any>) {
-    executionId = event["executionId"]?.toString() ?: executionId
-    val taskId = event["taskId"]?.toString() ?: "global"
-    val message = event["message"]?.toString() ?: "No message provided"
-    val type = event["eventType"]?.toString()?.uppercase() ?: "INFO"
-    val reason = event["reason"]?.toString()
+  data class ExecutionEvent(
+      val executionId: ExecutionId,
+      val executionEventType: ExecutionEventType,
+      val success: Boolean = true,
+      val message: String? = null,
+  )
 
-    seenTasks += taskId
+  enum class ExecutionEventType {
+    STARTED,
+    UPDATED,
+    COMPLETED,
+    FAILED,
+    SKIPPED
+  }
+
+  data class ArchitectEvent(
+      val id: ArchitectEventId,
+      val event: Map<String, Any> = emptyMap(),
+  )
+
+  private val objectMapper = ObjectMapper().registerKotlinModule()
+
+  fun process(eventMap: Map<String, Any>) {
+    println("Processing event: $eventMap")
+    val event = objectMapper.convertValue<ArchitectEvent>(eventMap)
+    println("Converted event: $event")
+    val executionEventType = event.event["executionEventType"] as? String
     val icon =
-        when (type) {
-          "STARTED" -> "▶️"
-          "COMPLETED" -> "✅"
-          "FAILED" -> {
-            failed = true
-            if (reason != null)
-                failureReasons.computeIfAbsent(taskId) { mutableListOf() }.add(reason)
-            "❌"
+        executionEventType?.let { type ->
+          when (type) {
+            "STARTED" -> "▶️"
+            "COMPLETED" -> "✅"
+            "FAILED" -> {
+              if (event.event["taskId"] == null) {
+                failed = true
+              }
+              "❌"
+            }
+
+            "SKIPPED" -> "⏭️"
+            else -> "ℹ️"
           }
-          "SKIPPED" -> "⏭️"
-          else -> "ℹ️"
         }
-
-    taskEvents.computeIfAbsent(taskId) { mutableListOf() }.add(icon)
-    taskMessages[taskId] = message
-
+    val message = objectMapper.writeValueAsString(event.event)
+    icon?.run { eventsLog.add(EventLog(event.id, icon, message)) }
     redraw()
   }
 
@@ -116,20 +139,13 @@ class ConsoleUI(private val taskName: String) {
 
     val summaryLines =
         listOf(
-            " 🔍 Tasks Seen    : ${seenTasks.size}",
-            " 📒 Tasks Logged  : ${taskEvents.size}",
+            " 🔍 Event Seen    : ${eventsLog.size}",
             " 🚨 Failures      : ${if (failed) 1 else 0}",
-            " 📊 Progress      : ${taskEvents.size} / ${seenTasks.size} tasks")
+            " 📊 Progress      : ${eventsLog.size} / ${eventsLog.size} tasks")
 
-    val headers = listOf("🛠️ Task", "✉️ Events", "💬 Message")
+    val headers = listOf("🛠️ Event", "💬 Content")
 
-    val rows =
-        taskEvents.entries.map { (taskId, icons) ->
-          val label = if (taskId == "global") "⚙️ Execution" else "🔧 $taskId"
-          val iconsString = icons.takeLast(EVENTS_COL_WIDTH / 2).joinToString(" ")
-          val msg = taskMessages[taskId] ?: ""
-          listOf(label, iconsString, msg)
-        }
+    val rows = eventsLog.map { listOf(it.id, it.message) }
 
     val maxLines = maxOf(summaryLines.size, rows.size + 4)
 
@@ -153,18 +169,11 @@ class ConsoleUI(private val taskName: String) {
       ui.addCenteredLine("${AnsiColors.BOLD}${AnsiColors.RED}❌  Failure Details${AnsiColors.RESET}")
       ui.drawLine('╠', null, '╣', '═')
 
-      for ((task, reasons) in failureReasons) {
-        val taskHeader = "${AnsiColors.BOLD}${AnsiColors.YELLOW}🔧 $task${AnsiColors.RESET}"
-        val strippedHeader = taskHeader.replace(Regex("\u001B\\[[0-9;]*m"), "")
-        val padding = " ".repeat(TOTAL_WIDTH - 3 - strippedHeader.length)
-        ui.addLine("║ $taskHeader$padding║")
-
-        for (reason in reasons) {
-          val reasonLines = wrapText(reason, TOTAL_WIDTH - 5)
-          reasonLines.forEach { line ->
-            val internalPadding = TOTAL_WIDTH - 5 - line.visibleLength()
-            ui.addLine("║   $line${" ".repeat(internalPadding)}║")
-          }
+      for (reason in failureReasons) {
+        val reasonLines = wrapText(reason, TOTAL_WIDTH - 5)
+        reasonLines.forEach { line ->
+          val internalPadding = TOTAL_WIDTH - 5 - line.visibleLength()
+          ui.addLine("║   $line${" ".repeat(internalPadding)}║")
         }
       }
     }
@@ -205,7 +214,7 @@ class ConsoleUI(private val taskName: String) {
   }
 
   private fun tableLine(left: Char, mid: Char, right: Char, fill: Char): String {
-    val widths = listOf(TASK_COL_WIDTH, EVENTS_COL_WIDTH, MESSAGE_COL_WIDTH)
+    val widths = listOf(EVENT_ID_COL_WIDTH, EVENT_CONTENT_COL_WIDTH)
     return buildString {
       append(left)
       for ((i, w) in widths.withIndex()) {
@@ -216,7 +225,7 @@ class ConsoleUI(private val taskName: String) {
   }
 
   private fun tableRow(cells: List<String>): String {
-    val widths = listOf(TASK_COL_WIDTH, EVENTS_COL_WIDTH, MESSAGE_COL_WIDTH)
+    val widths = listOf(EVENT_ID_COL_WIDTH, EVENT_CONTENT_COL_WIDTH)
     return buildString {
       append('│')
       for ((i, cell) in cells.withIndex()) {
@@ -249,3 +258,5 @@ class ConsoleUI(private val taskName: String) {
   private fun boldYellow(text: String): String =
       "${AnsiColors.BOLD}${AnsiColors.YELLOW}$text${AnsiColors.RESET}"
 }
+
+typealias ArchitectEventId = String
