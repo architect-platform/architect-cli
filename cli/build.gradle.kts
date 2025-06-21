@@ -9,8 +9,8 @@ plugins {
   id("org.jetbrains.kotlin.kapt") version "1.9.25"
   id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
   id("com.github.johnrengelman.shadow") version "8.1.1"
-  id("io.micronaut.application") version "4.5.3"
-  id("io.micronaut.aot") version "4.5.3"
+  id("io.micronaut.application") version "4.5.4"
+  id("io.micronaut.aot") version "4.5.4"
 }
 
 repositories { mavenCentral() }
@@ -24,9 +24,9 @@ dependencies {
   implementation("io.micronaut.serde:micronaut-serde-jackson")
   implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.8.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.10.2")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.micronaut.reactor:micronaut-reactor")
