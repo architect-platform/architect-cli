@@ -76,3 +76,14 @@ configurations
         }
       }
     }
+
+configurations.all {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "org.jetbrains.kotlin") {
+      useVersion("1.9.25")
+    }
+    if (requested.group == "org.jetbrains.kotlinx") {
+      useVersion("1.8.1") // coroutines version compatible with Kotlin 1.9.x
+    }
+  }
+}
