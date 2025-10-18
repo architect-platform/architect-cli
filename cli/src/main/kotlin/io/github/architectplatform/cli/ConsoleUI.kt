@@ -3,8 +3,9 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.github.architectplatform.cli.TerminalUI
 import io.github.architectplatform.cli.client.ExecutionId
+import kotlin.system.exitProcess
 
-class ConsoleUI(private val taskName: String) {
+class ConsoleUI(private val taskName: String, private val plain: Boolean = false) {
 
   object AnsiColors {
     const val RESET = "\u001B[0m"
@@ -72,9 +73,7 @@ class ConsoleUI(private val taskName: String) {
   private val objectMapper = ObjectMapper().registerKotlinModule()
 
   fun process(eventMap: Map<String, Any>) {
-    println("Processing event: $eventMap")
     val event = objectMapper.convertValue<ArchitectEvent>(eventMap)
-    println("Converted event: $event")
     val executionEventType = event.event["executionEventType"] as? String
     val icon =
         executionEventType?.let { type ->
@@ -109,6 +108,10 @@ class ConsoleUI(private val taskName: String) {
   }
 
   private fun redraw() {
+    if (plain) {
+      println(eventsLog.last())
+      return
+    }
     print("\u001B[2J\u001B[H") // Clear screen
 
     ui.clear()

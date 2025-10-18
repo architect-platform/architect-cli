@@ -61,7 +61,7 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
       return
     }
 
-    val ui = ConsoleUI(command!!)
+    val ui = ConsoleUI(command!!, plain)
 
     println("🛠️Executing task: $command")
     runBlocking {
@@ -70,34 +70,18 @@ class ArchitectLauncher(private val engineCommandClient: EngineCommandClient) : 
         val executionId = engineCommandClient.execute(projectName, command!!, args)
         val flow = engineCommandClient.getExecutionFlow(executionId)
         flow.collect {
-          if (plain) {
-            println(it)
-          } else {
             ui.process(it)
-          }
         }
         val duration = (System.currentTimeMillis() - startTime) / 1000.0
         if (ui.hasFailed) {
-          if (plain) {
-            println("Task failed after ${"%.1f".format(duration)}s")
-          } else {
-            ui.completeWithError("Task failed")
-          }
+          ui.completeWithError("Task failed")
           exitProcess(1)
         } else {
-          if (plain) {
-            println("Task completed in ${"%.1f".format(duration)}s")
-          } else {
-            ui.complete("Task completed in ${"%.1f".format(duration)}s")
-          }
+          ui.complete("Task completed in ${"%.1f".format(duration)}s")
           exitProcess(0)
         }
       } catch (e: Exception) {
-        if (plain) {
-          println("Task aborted: ${e.message}")
-        } else {
-          ui.completeWithError("Task aborted: ${e.message}")
-        }
+        ui.completeWithError("Task aborted: ${e.message}")
         exitProcess(1)
       }
     }
