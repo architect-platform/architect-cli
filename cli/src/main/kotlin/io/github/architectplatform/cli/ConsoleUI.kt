@@ -109,7 +109,7 @@ class ConsoleUI(private val taskName: String, private val plain: Boolean = false
 
   private fun redraw() {
     if (plain) {
-      println(eventsLog.last())
+      if (eventsLog.isNotEmpty()) println(eventsLog.last())
       return
     }
     print("\u001B[2J\u001B[H") // Clear screen
